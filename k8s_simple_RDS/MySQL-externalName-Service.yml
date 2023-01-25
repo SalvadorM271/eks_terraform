@@ -6,6 +6,6 @@ spec:
   type: ExternalName #need to get this endpoint after terraform apply (may want to change that for ci/cd)
   externalName: usermgmtdb.c2oasyqb1ok6.us-east-1.rds.amazonaws.com # rds endpoint
 
-
+# this lets you communicate with aws services like rds
 # to access with classic load balancer go to
 # http://a687217e3029340ad98abec92abe9c8a-535707020.us-east-1.elb.amazonaws.com/usermgmt/health-status

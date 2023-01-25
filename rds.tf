@@ -1,3 +1,5 @@
+##-------------------only need this for relational database deployments--------------------
+
 # --------------------------RDS security group--------------------------
 
 resource "aws_security_group" "rds_sg" {
@@ -6,7 +8,7 @@ resource "aws_security_group" "rds_sg" {
 
   ingress {
     protocol         = "tcp"
-    from_port        = 3306
+    from_port        = 3306 // sql port
     to_port          = 3306
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]

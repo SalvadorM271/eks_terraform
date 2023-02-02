@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: mern-frontend
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: mern-frontend
   ports:

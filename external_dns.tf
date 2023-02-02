@@ -1,5 +1,5 @@
 ##-------------------only need this if im using external dns in my kubernetes--------------------
-
+/*
 ## creates rol needed for external dns this is not bind to anything, bc The "assume_role_policy" for this role
 ## is configured to allow the "eks.amazonaws.com" service to assume it, so that service
 ## can perform actions on your behalf with the permissions granted by the policies attached to the role.
@@ -37,12 +37,32 @@ resource "aws_iam_role_policy_attachment" "externaldns-AmazonEC2ReadOnlyAccess" 
 }
 
 
+## better to just use kube manifest for this bc if they are already created
+## they wont create again unless something changes
+*/
+##-------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 ## creates service account on kubernetes
 
 resource "kubernetes_service_account" "externaldns" {
   metadata {
     name      = "externaldns"
-    namespace = "externaldns"
+    namespace = "default"
   }
 }
 
@@ -60,27 +80,15 @@ resource "kubernetes_cluster_role" "externaldns" {
   }
 
   rule {
-    api_groups = [""]
-    resources  = ["services"]
-    verbs      = ["patch", "update"]
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["configmaps"]
-    verbs      = ["create", "get", "list", "watch", "update"]
-  }
-
-  rule {
-    api_groups = ["extensions"]
+    api_groups = ["extensions","networking.k8s.io"]
     resources  = ["ingresses"]
-    verbs      = ["get", "list", "watch"]
+    verbs      = ["get","watch","list"]
   }
 
   rule {
     api_groups = [""]
     resources  = ["nodes"]
-    verbs      = ["get", "list", "watch"]
+    verbs      = ["list", "watch"]
   }
 }
 
@@ -90,50 +98,43 @@ resource "kubernetes_cluster_role" "externaldns" {
 resource "kubernetes_role_binding" "externaldns" {
   metadata {
     name      = "externaldns"
-    namespace = "externaldns"
+    namespace = "default"
   }
 
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = "externaldns-role"
+    name      = "externaldns-role" ## cluster role name
   }
 
   subject {
     kind      = "ServiceAccount"
-    name      = kubernetes_service_account.externaldns.metadata.0.name
-    namespace = kubernetes_service_account.externaldns.metadata.0.namespace
+    name      = "externaldns" ## service account name
+    namespace = "default"
   }
-}
+} 
 
-## makes external dns work with cloudflare 
 
-resource "kubernetes_config_map" "externaldns" {
-  metadata {
-    name      = "externaldns"
-    namespace = "externaldns"
-  }
-
-  data = {
-    "provider" = "cloudflare"
-    "cloudflare_api_key" = "YOUR_API_KEY" ## change for my value
-    "cloudflare_email" = "your_email@example.com" ## change for my value
-    "openid_provider_arn" = "${aws_iam_openid_connect_provider.eks.arn}" ## can be found on main.tf
-    "policy" = "upsert-only"
-    "registry" = "txt"
-  }
-}
 
 ## deployment for the external dns image
 
 resource "kubernetes_deployment" "externaldns" {
   metadata {
     name      = "externaldns"
-    namespace = "externaldns"
   }
 
   spec {
     replicas = 1
+
+    strategy {
+      type = "Recreate"
+    }
+
+    selector {
+      match_labels = {
+        app = "externaldns"
+      }
+    }
 
     template {
       metadata {
@@ -143,89 +144,35 @@ resource "kubernetes_deployment" "externaldns" {
       }
 
       spec {
+        service_account_name = "externaldns"
         container {
           name  = "externaldns"
-          image = "registry.docker.io/bitnami/external-dns:latest"
+          image = "registry.k8s.io/external-dns/external-dns:v0.13.1"
+          args = ["--provider=cloudflare", "--source=service", "--source=ingress"]
 
           env {
-            name  = "POD_NAME"
-            value = "${kubernetes_pod.externaldns.metadata.0.name}"
+            name  = "CF_API_KEY"
+            value = "3671b405a3abfc315537818c704ccee3cdc3c"
           }
 
           env {
-            name  = "POD_NAMESPACE"
-            value = "${kubernetes_pod.externaldns.metadata.0.namespace}"
+            name  = "CF_API_EMAIL"
+            value = "guardianes27@outlook.com"
           }
 
-          volume_mount {
-            name = "config"
-            mount_path = "/etc/externaldns"
-          }
         }
 
-        volume {
-          name = "config"
-          config_map {
-            name = "externaldns"
-          }
+        security_context {
+            fs_group = 65534 ## For ExternalDNS to be able to read Kubernetes and AWS token files
         }
-      }
-    }
-  }
-}
 
-
-/* this is created with kube manifest
-
-resource "kubernetes_service" "externaldns" {
-  metadata {
-    name      = "externaldns"
-    namespace = "externaldns"
-  }
-
-  spec {
-    selector = {
-      "app" = "externaldns"
-    }
-    ports {
-      name     = "http"
-      port     = 80
-      protocol = "TCP"
-    }
-  }
-}
-
-//p5
-
-resource "kubernetes_ingress" "externaldns" {
-  metadata {
-    name      = "externaldns"
-    namespace = "externaldns"
-  }
-
-  spec {
-    rules {
-      host = "externaldns.example.com"
-
-      http {
-        paths {
-          path = "/"
-
-          path_type = "Prefix"
-
-          backend {
-            service {
-              name = kubernetes_service.externaldns.metadata.0.name
-              port = {
-                name = "http"
-              }
-            }
-          }
-        }
       }
     }
   }
 }
 
 */
+
+
+
 

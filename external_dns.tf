@@ -152,12 +152,12 @@ resource "kubernetes_deployment" "externaldns" {
 
           env {
             name  = "CF_API_KEY"
-            value = "3671b405a3abfc315537818c704ccee3cdc3c"
+            value = ""
           }
 
           env {
             name  = "CF_API_EMAIL"
-            value = "guardianes27@outlook.com"
+            value = ""
           }
 
         }

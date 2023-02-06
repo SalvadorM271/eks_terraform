@@ -16,6 +16,6 @@ spec:
     spec:      
       containers:
         - name: mern-frontend
-          image: crimson2022/frontend:8.0  
+          image: crimson2022/frontend:9.0  
           ports: 
             - containerPort: 80                

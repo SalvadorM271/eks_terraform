@@ -43,34 +43,77 @@ resource "aws_iam_role_policy_attachment" "externaldns-AmazonEC2ReadOnlyAccess" 
 ##-------------------------------------------------------------------------------------------
 
 
+// new code
 
+/*data is being used to create an AWS IAM policy document. This policy document is not actually creating
+ the policy in AWS, it's just defining the policy in Terraform configuration. a resource block will later
+ be use to create this on aws (a variable should be passed with the needed namespace)*/ 
 
+data "aws_iam_policy_document" "external_dns_assume_role_policy" {
+  statement {
+    actions = ["sts:AssumeRoleWithWebIdentity"]
+    effect  = "Allow"
 
+    condition {
+      test     = "StringEquals"
+      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // pass var for na
+      values   = ["system:serviceaccount:kube-system:external-dns"] // same name needed on sa
+    }
 
-
-
-
-
-
-
-
-
-
-/*
-## creates service account on kubernetes
-
-resource "kubernetes_service_account" "externaldns" {
-  metadata {
-    name      = "externaldns"
-    namespace = "default"
+    principals {
+      identifiers = [aws_iam_openid_connect_provider.eks.arn]
+      type        = "Federated"
+    }
   }
 }
 
-## creates rol in kubernetes needed to perform operations within kubernetes
+// the name of the role is important to remmenber or to be created under a guideline since is use on kube too
 
-resource "kubernetes_cluster_role" "externaldns" {
+resource "aws_iam_role" "external-dns" {
+  //the policy define with data is like a template for easy use we pass it here to create the policy
+  assume_role_policy = data.aws_iam_policy_document.external_dns_assume_role_policy.json
+  name               = "external-dns"
+}
+
+//another policy is needed but i use a file instead of doing everything here to make it redable
+
+resource "aws_iam_policy" "external-dns" {
+  policy = file("./dns_pol/external-dns.json")
+  name   = "external-dns"
+}
+
+// attaching the policy to the rol created bf
+
+resource "aws_iam_role_policy_attachment" "external-dns_attach" {
+  role       = aws_iam_role.external-dns.name
+  policy_arn = aws_iam_policy.external-dns.arn
+}
+
+// outputing the rol arn (you can get by just knowing the acc number and the name of the role)
+
+output "external-dns_role_arn" {
+  value = aws_iam_role.external-dns.arn
+}
+
+
+// after creating the rol in aws there is two options to deploy either creating a helm release or a kubemanifest
+
+
+/*
+resource "kubernetes_service_account" "external_dns" {
   metadata {
-    name = "externaldns-role"
+    name      = "external-dns"
+    namespace = "kube-system"
+    annotations = {
+      "eks.amazonaws.com/role-arn" = aws_iam_role.external-dns.arn
+    }
+  }
+  automount_service_account_token = true
+}
+
+resource "kubernetes_cluster_role" "external_dns" {
+  metadata {
+    name = "external-dns"
   }
 
   rule {
@@ -92,86 +135,70 @@ resource "kubernetes_cluster_role" "externaldns" {
   }
 }
 
-
-## binds kubernetes cluster rol to service account
-
-resource "kubernetes_role_binding" "externaldns" {
+resource "kubernetes_cluster_role_binding" "external_dns" {
   metadata {
-    name      = "externaldns"
-    namespace = "default"
+    name = "external-dns"
   }
-
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
-    name      = "externaldns-role" ## cluster role name
+    name      = kubernetes_cluster_role.external_dns.metadata.0.name
   }
-
   subject {
     kind      = "ServiceAccount"
-    name      = "externaldns" ## service account name
-    namespace = "default"
-  }
-} 
-
-
-
-## deployment for the external dns image
-
-resource "kubernetes_deployment" "externaldns" {
-  metadata {
-    name      = "externaldns"
-  }
-
-  spec {
-    replicas = 1
-
-    strategy {
-      type = "Recreate"
-    }
-
-    selector {
-      match_labels = {
-        app = "externaldns"
-      }
-    }
-
-    template {
-      metadata {
-        labels = {
-          "app" = "externaldns"
-        }
-      }
-
-      spec {
-        service_account_name = "externaldns"
-        container {
-          name  = "externaldns"
-          image = "registry.k8s.io/external-dns/external-dns:v0.13.1"
-          args = ["--provider=cloudflare", "--source=service", "--source=ingress"]
-
-          env {
-            name  = "CF_API_KEY"
-            value = ""
-          }
-
-          env {
-            name  = "CF_API_EMAIL"
-            value = ""
-          }
-
-        }
-
-        security_context {
-            fs_group = 65534 ## For ExternalDNS to be able to read Kubernetes and AWS token files
-        }
-
-      }
-    }
+    name      = kubernetes_service_account.external_dns.metadata.0.name
+    namespace = kubernetes_service_account.external_dns.metadata.0.namespace
   }
 }
 
-*/
+// change to dns
+
+resource "helm_release" "aws-load-balancer-controller" {
+  name = "aws-load-balancer-controller"
+
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  namespace  = "kube-system"
+  version    = "1.4.1"
+
+  set {
+    name  = "clusterName"
+    value = aws_eks_cluster.demo.id
+  }
+
+  set {
+    name  = "image.tag"
+    value = "v2.4.2"
+  }
+
+  set {
+    name  = "serviceAccount.name"
+    value = "aws-load-balancer-controller" // creates service account
+  }
+
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn" // passes anotation to sa
+    value = aws_iam_role.external-dns.arn // name is very important be sure to not change
+  }
+
+  depends_on = [
+    aws_eks_node_group.private-nodes,
+    aws_iam_role_policy_attachment.external-dns_attach
+  ]
+}*/
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

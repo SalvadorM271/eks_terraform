@@ -19,7 +19,7 @@ metadata:
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
 spec:
-  ingressClassName: alb
+  ingressClassName: alb ## i miss creating this resource still works for some reason
   rules:
     - host: dev.salvadormenendez.social
       http:

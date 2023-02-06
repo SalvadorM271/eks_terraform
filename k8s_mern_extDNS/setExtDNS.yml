@@ -6,7 +6,7 @@ metadata:
   # Otherwise, you may safely omit it.
   annotations:
     # Substitute your account ID and IAM service role name below. you decide a given nane bf creating infra
-    eks.amazonaws.com/role-arn: arn:aws:iam::153042419275:role/externaldns
+    eks.amazonaws.com/role-arn: arn:aws:iam::153042419275:role/external-dns
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -67,8 +67,8 @@ spec:
        # Change-3: Commented line 65 and 67  - --policy=upsert-only # would prevent ExternalDNS from deleting any records, omit to enable full synchronization
         env:
         - name: CF_API_KEY
-          value: "3671b405a3abfc315537818c704ccee3cdc3c"
+          value: ""
         - name: CF_API_EMAIL
-          value: "guardianes27@outlook.com"
+          value: ""
       securityContext:
         fsGroup: 65534 # For ExternalDNS to be able to read Kubernetes and AWS token files

@@ -120,7 +120,7 @@ resource "helm_release" "external_dns" {
 
 /*data is being used to create an AWS IAM policy document. This policy document is not actually creating
  the policy in AWS, it's just defining the policy in Terraform configuration. a resource block will later
- be use to create this on aws */ 
+ be use to create this on aws (a variable should be passed with the needed namespace)*/ 
 
 data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role_policy" {
   statement {
@@ -129,7 +129,7 @@ data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role_policy"
 
     condition {
       test     = "StringEquals"
-      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub"
+      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // pass var for na
       values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"] // same name needed on sa
     }
 

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: frontend-microservice
+  labels:
+    app: mern-frontend
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: mern-frontend
+  template:  
+    metadata:
+      labels: 
+        app: mern-frontend
+    spec:      
+      containers:
+        - name: mern-frontend
+          image: crimson2022/frontend:9.0  
+          ports: 
+            - containerPort: 80                

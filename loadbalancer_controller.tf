@@ -116,11 +116,11 @@ resource "helm_release" "external_dns" {
 }was a work in progress wanna try something else*/
 
 
-/*testing new code*/
+/*testing new code-----------------------------------------------------------------*/
 
 /*data is being used to create an AWS IAM policy document. This policy document is not actually creating
  the policy in AWS, it's just defining the policy in Terraform configuration. a resource block will later
- be use to create this on aws (a variable should be passed with the needed namespace)*/ 
+ be use to create this on aws (a variable should be passed with the needed namespace, to make it better)*/ 
 
 data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role_policy" {
   statement {

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: mern-frontend
 spec:
-  replicas: 5
+  replicas: 5 #it was 2 I up it to 5 to test cluster autoscaler
   selector:
     matchLabels:
       app: mern-frontend

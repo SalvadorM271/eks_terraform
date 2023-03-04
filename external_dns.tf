@@ -1,48 +1,3 @@
-##-------------------only need this if im using external dns in my kubernetes--------------------
-/*
-## creates rol needed for external dns this is not bind to anything, bc The "assume_role_policy" for this role
-## is configured to allow the "eks.amazonaws.com" service to assume it, so that service
-## can perform actions on your behalf with the permissions granted by the policies attached to the role.
-
-resource "aws_iam_role" "externaldns" {
-  name = "externaldns"
-
-  assume_role_policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Service": "eks.amazonaws.com"
-      },
-      "Action": "sts:AssumeRole"
-    }
-  ]
-}
-POLICY
-}
-
-## attaches policies needed for external dns to my rol
-
-resource "aws_iam_role_policy_attachment" "externaldns-AmazonRoute53AutoNamingPolicy" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonRoute53AutoNamingFullAccess"
-  role = aws_iam_role.externaldns.name
-}
-
-
-resource "aws_iam_role_policy_attachment" "externaldns-AmazonEC2ReadOnlyAccess" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ReadOnlyAccess"
-  role = aws_iam_role.externaldns.name
-}
-
-
-## better to just use kube manifest for this bc if they are already created
-## they wont create again unless something changes
-*/
-##-------------------------------------------------------------------------------------------
-
-
 // new code
 
 /*data is being used to create an AWS IAM policy document. This policy document is not actually creating
@@ -57,7 +12,8 @@ data "aws_iam_policy_document" "external_dns_assume_role_policy" {
     condition {
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // pass var for na
-      values   = ["system:serviceaccount:kube-system:external-dns"] // same name needed on sa
+      values   = ["system:serviceaccount:default:external-dns"] // same name needed on sa <--- check
+      // its of extremelly importance for you to check if the service acc was deploy on same namespace and has the same name since you are restricting access for this rol to only that service acc
     }
 
     principals {
@@ -99,93 +55,29 @@ output "external-dns_role_arn" {
 // after creating the rol in aws there is two options to deploy either creating a helm release or a kubemanifest
 
 
-/*
-resource "kubernetes_service_account" "external_dns" {
-  metadata {
-    name      = "external-dns"
-    namespace = "kube-system"
-    annotations = {
-      "eks.amazonaws.com/role-arn" = aws_iam_role.external-dns.arn
-    }
-  }
-  automount_service_account_token = true
+//---------------------policy to use secrets manager-------------------------
+
+resource "aws_iam_policy" "eks_csi_driver_policy" {
+  name        = "eks-deployment-policy"
+  policy      = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
+        /*you need to specify the arn of the secret you want to use in the app if you need
+        more than one you can use a comma and if you need them all you can use
+        arn:aws:secretsmanager:*:*:secret:*(not tested)*/
+        Resource = ["arn:aws:secretsmanager:us-east-1:153042419275:secret:cloudflare-ZlOXvE"]
+      }
+    ]
+  })
 }
 
-resource "kubernetes_cluster_role" "external_dns" {
-  metadata {
-    name = "external-dns"
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["services", "endpoints", "pods"]
-    verbs      = ["get", "list", "watch"]
-  }
-
-  rule {
-    api_groups = ["extensions","networking.k8s.io"]
-    resources  = ["ingresses"]
-    verbs      = ["get","watch","list"]
-  }
-
-  rule {
-    api_groups = [""]
-    resources  = ["nodes"]
-    verbs      = ["list", "watch"]
-  }
+resource "aws_iam_role_policy_attachment" "external-dns_attach_secrets" {
+  role       = aws_iam_role.external-dns.name
+  policy_arn = aws_iam_policy.eks_csi_driver_policy.arn
 }
-
-resource "kubernetes_cluster_role_binding" "external_dns" {
-  metadata {
-    name = "external-dns"
-  }
-  role_ref {
-    api_group = "rbac.authorization.k8s.io"
-    kind      = "ClusterRole"
-    name      = kubernetes_cluster_role.external_dns.metadata.0.name
-  }
-  subject {
-    kind      = "ServiceAccount"
-    name      = kubernetes_service_account.external_dns.metadata.0.name
-    namespace = kubernetes_service_account.external_dns.metadata.0.namespace
-  }
-}
-
-// change to dns
-
-resource "helm_release" "aws-load-balancer-controller" {
-  name = "aws-load-balancer-controller"
-
-  repository = "https://aws.github.io/eks-charts"
-  chart      = "aws-load-balancer-controller"
-  namespace  = "kube-system"
-  version    = "1.4.1"
-
-  set {
-    name  = "clusterName"
-    value = aws_eks_cluster.demo.id
-  }
-
-  set {
-    name  = "image.tag"
-    value = "v2.4.2"
-  }
-
-  set {
-    name  = "serviceAccount.name"
-    value = "aws-load-balancer-controller" // creates service account
-  }
-
-  set {
-    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn" // passes anotation to sa
-    value = aws_iam_role.external-dns.arn // name is very important be sure to not change
-  }
-
-  depends_on = [
-    aws_eks_node_group.private-nodes,
-    aws_iam_role_policy_attachment.external-dns_attach
-  ]
-}*/
 
 
 

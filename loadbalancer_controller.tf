@@ -129,8 +129,9 @@ data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role_policy"
 
     condition {
       test     = "StringEquals"
-      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // pass var for na
-      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"] // same name needed on sa
+      variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // to make it better pass var for namespace
+      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"] // put your service acc name here and namespace wher it lives
+      // rol is restricted to only be use by the service account define above by sub, check eks notes
     }
 
     principals {

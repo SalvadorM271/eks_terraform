@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: nginx
 spec:
-  replicas: 1
+  replicas: 1 #lets see if this gets erase
   selector:
     matchLabels:
       app: nginx

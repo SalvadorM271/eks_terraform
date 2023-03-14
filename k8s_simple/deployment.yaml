@@ -6,13 +6,13 @@ spec:
   replicas: 1 #lets see if this gets erase
   selector:
     matchLabels:
-      app: nginx # it didnt
+      app: nginx # it didnt (so if only did changes in other files, my local files wont get affected)
   template:
     metadata:
       labels:
-        app: nginx
-    spec:
-      containers:
+        app: nginx # however if i did changes here locally, and someone did changes to this file 
+    spec:          # and push them to github it will conflict with the changes made here by me
+      containers:  # example run git pull the get error: Your local changes to the following files would be overwritten by merge: k8s_simple/deployment.yaml
       - name: nginx
         image: nginx:1.14.2
         ports:

@@ -6,7 +6,7 @@ spec:
   replicas: 1 #lets see if this gets erase
   selector:
     matchLabels:
-      app: nginx
+      app: nginx # it didnt
   template:
     metadata:
       labels:

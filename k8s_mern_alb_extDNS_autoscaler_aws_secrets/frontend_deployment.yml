@@ -16,6 +16,6 @@ spec:
     spec:      
       containers:
         - name: mern-frontend
-          image: 153042419275.dkr.ecr.us-east-1.amazonaws.com/eks_mern_frontend:2023-03-15.20.09.10.d3e19ee9
+          image: 153042419275.dkr.ecr.us-east-1.amazonaws.com/eks_mern_frontend:2023-03-15.20.22.49.927e5981
           ports: 
             - containerPort: 80                

@@ -16,6 +16,6 @@ spec:
     spec:      
       containers:
         - name: mern-frontend
-          image: crimson2022/frontend:10.0  
+          image: 153042419275.dkr.ecr.us-east-1.amazonaws.com/eks_mern_frontend:1.0 # crimson2022/frontend:10.0  
           ports: 
             - containerPort: 80                

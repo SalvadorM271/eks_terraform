@@ -14,3 +14,4 @@ variable git_user {}
 
 variable git_repo {}
 
+variable git_branch {}

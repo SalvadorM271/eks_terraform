@@ -167,12 +167,17 @@ resource "aws_codebuild_project" "this" {
       name  = "GITHUB_TOKEN"
       value = var.github_token
     }
+
+    environment_variable {
+      name  = "REPO_NAME"
+      value = var.git_repo
+    }
     # Add other environment variables if necessary
   }
 
   source {
     type            = "CODEPIPELINE"
-    //buildspec       = file("${path.module}/buildspec.yml")
+    buildspec       = var.buildspec_file
     git_clone_depth = 1
   }
 

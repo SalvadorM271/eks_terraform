@@ -15,3 +15,5 @@ variable git_user {}
 variable git_repo {}
 
 variable git_branch {}
+
+variable buildspec_file {}

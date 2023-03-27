@@ -8,6 +8,8 @@ data "aws_secretsmanager_secret_version" "git-credentials" {
   secret_id = data.aws_secretsmanager_secret.git-credentials.id
 }
 
+// DONT USE BRANCHES WITH UNDERSCORE
+
 // change name of module
 module aws_codepipeline_feature {
   source = "./modules/aws_codepipeline"

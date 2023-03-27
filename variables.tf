@@ -1,18 +1,18 @@
-variable codebuild_project_name {}
+// -----------------aws codepipeline module----------------
 
-variable github_token {}
+//variable codebuild_project_name {}
 
-variable bucket_name {}
+//variable github_token {}
 
-variable pipeline_name {}
+//variable bucket_name {}
 
-variable frontend_repo {}
+//variable pipeline_name {}
 
-variable git_email {}
+//variable frontend_repo {}
 
-variable git_user {}
+//variable git_email {}
 
-variable git_repo {}
+//variable git_user {}
 
-variable git_branch {}
+//variable git_repo {}
 

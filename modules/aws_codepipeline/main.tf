@@ -172,6 +172,16 @@ resource "aws_codebuild_project" "this" {
       name  = "REPO_NAME"
       value = var.git_repo
     }
+
+    environment_variable {
+      name  = "DOCKER_HUB_USERNAME"
+      value = var.docker_user
+    }
+
+    environment_variable {
+      name  = "DOCKER_HUB_PASSWORD"
+      value = var.docker_password
+    }
     # Add other environment variables if necessary
   }
 

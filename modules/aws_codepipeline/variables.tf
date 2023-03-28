@@ -17,3 +17,12 @@ variable git_repo {}
 variable git_branch {}
 
 variable buildspec_file {}
+
+variable docker_user {
+    default = ""
+}
+
+variable docker_password {
+    default = ""
+}
+

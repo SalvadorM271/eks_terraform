@@ -32,6 +32,10 @@ module aws_codepipeline_feature {
 
   git_user = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["git_user"]
 
+  docker_user = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["docker_user"]
+
+  docker_password = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["docker_password"]
+
   git_repo = "testmernapp"
 
   git_branch = "feature/new_feature" // change branch
@@ -57,6 +61,10 @@ module aws_codepipeline_develop {
   git_email = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["git_email"]
 
   git_user = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["git_user"]
+
+  docker_user = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["docker_user"]
+
+  docker_password = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["docker_password"]
 
   git_repo = "testmernapp"
 
@@ -84,6 +92,10 @@ module aws_codepipeline_main {
   git_email = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["git_email"]
 
   git_user = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["git_user"]
+
+  docker_user = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["docker_user"]
+
+  docker_password = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["docker_password"]
 
   git_repo = "testmernapp"
 

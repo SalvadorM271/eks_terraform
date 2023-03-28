@@ -7,11 +7,7 @@ phases:
       - echo "Install Phase - Nothing to do using latest Amazon Linux Docker Image for CodeBuild which has all AWS Tools - https://github.com/aws/aws-codebuild-docker-images/blob/master/al2/x86_64/standard/3.0/Dockerfile"
   build:
     commands:
-      # Build Docker Image
-      - echo "Build started on `date`"
-      - echo "Building the Docker image..."
-      - ls
-      - docker build --tag $FRONTEND:$TAG .
+      # create pull request to develop
       - echo "Creating pull request from feature/new_feature to develop"
       - |
         curl -X POST \

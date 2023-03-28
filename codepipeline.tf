@@ -104,7 +104,7 @@ module aws_codepipeline_feature_infra {
 
   bucket_name = "test-for-codepipeline-4736478364-infra"
 
-  pipeline_name = "mern-app-pipeline-infra"
+  pipeline_name = "mern-pipeline-infra"
 
   frontend_repo = "" // not needed for this, but only use to create env so can be blank
 
@@ -130,7 +130,7 @@ module aws_codepipeline_develop_infra {
 
   bucket_name = "test-for-codepipeline-4736478364-infra"
 
-  pipeline_name = "mern-app-pipeline-infra"
+  pipeline_name = "mern-pipeline-infra"
 
   frontend_repo = "" // not needed for this, but only use to create env so can be blank
 

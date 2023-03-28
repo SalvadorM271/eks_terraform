@@ -41,7 +41,7 @@ if everything went well it should display status available in the connection, th
 time per pipeline*/
 
 resource "aws_codestarconnections_connection" "github_codepipeline" {
-  name          = "${substr(var.git_branch, 0, 7)}-github-codepipeline"
+  name          = "${substr(var.git_branch, 0, 7)}-${var.pipeline_name}-con"
   provider_type = "GitHub"
 }
 
@@ -68,7 +68,7 @@ resource "aws_codepipeline" "this" {
       configuration = {
         ConnectionArn = aws_codestarconnections_connection.github_codepipeline.arn
         FullRepositoryId = "${var.git_user}/${var.git_repo}"
-        BranchName = substr(var.git_branch, 0, 7)
+        BranchName = var.git_branch // carefull not short it here
       }
     }
   }

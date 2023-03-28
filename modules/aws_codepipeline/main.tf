@@ -68,7 +68,7 @@ resource "aws_codepipeline" "this" {
       configuration = {
         ConnectionArn = aws_codestarconnections_connection.github_codepipeline.arn
         FullRepositoryId = "${var.git_user}/${var.git_repo}"
-        BranchName = var.git_branch
+        BranchName = var.git_branch // carefull not short it here
       }
     }
   }

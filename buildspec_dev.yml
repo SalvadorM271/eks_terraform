@@ -12,12 +12,12 @@ phases:
       - echo "Building the Docker image..."
       - ls
       - docker build --tag $FRONTEND:$TAG .
-      - echo "Creating pull request from feature/new_feature to develop"
+      - echo "Creating pull request from develop to main"
       - |
         curl -X POST \
           -H "Authorization: token $GITHUB_TOKEN" \
           -H "Accept: application/vnd.github+json" \
-          -d '{"title": "Automated PR from feature/new_feature to develop", "head": "feature/new_feature", "base": "develop"}' \
+          -d '{"title": "Automated PR from develop to main", "head": "develop", "base": "main"}' \
           https://api.github.com/repos/$GIT_USER_NAME/$REPO_NAME/pulls
   post_build:
     commands:

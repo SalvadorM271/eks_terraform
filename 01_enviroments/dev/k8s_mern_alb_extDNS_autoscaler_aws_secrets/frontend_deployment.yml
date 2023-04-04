@@ -1,0 +1,23 @@
+# multiple files for deployment are needed to not cause conflicts with branches bc of the pipelines
+
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: frontend-microservice
+  labels:
+    app: mern-frontend
+spec:
+  replicas: 5 #it was 2 I up it to 5 to test cluster autoscaler
+  selector:
+    matchLabels:
+      app: mern-frontend
+  template:  
+    metadata:
+      labels: 
+        app: mern-frontend
+    spec:      
+      containers:
+        - name: mern-frontend
+          image: 153042419275.dkr.ecr.us-east-1.amazonaws.com/eks_mern_frontend:2023-03-28.20.07.05.ccccafd9
+          ports: 
+            - containerPort: 80                

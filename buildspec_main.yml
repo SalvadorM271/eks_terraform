@@ -8,16 +8,12 @@ phases:
   build:
     commands:
       # create pull request to main
-      - echo "Creating pull request from develop to main"
-      - |
-        curl -X POST \
-          -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Accept: application/vnd.github+json" \
-          -d '{"title": "Automated PR from develop to main", "head": "develop", "base": "main"}' \
-          https://api.github.com/repos/$GIT_USER_NAME/$REPO_NAME/pulls
+      - echo "doing main branch things"
   post_build:
     commands:
       # Push Docker Image to ECR Repository
       - echo "Build completed on `date`"
+      
+      
       
       

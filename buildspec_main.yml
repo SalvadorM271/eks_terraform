@@ -5,10 +5,33 @@ phases:
   install:
     commands:
       - echo "Install Phase - Nothing to do using latest Amazon Linux Docker Image for CodeBuild which has all AWS Tools - https://github.com/aws/aws-codebuild-docker-images/blob/master/al2/x86_64/standard/3.0/Dockerfile"
+  pre_build:
+    commands:
+      - terraform init
+      # may need to add policy to access secrets manager
+      - aws secretsmanager get-secret-value --secret-id tfvars-dev --query SecretString --output text > terraform_dev.tfvars
+      - aws secretsmanager get-secret-value --secret-id tfvars-stg --query SecretString --output text > terraform_stg.tfvars
+      - aws secretsmanager get-secret-value --secret-id tfvars-prod --query SecretString --output text > terraform_prod.tfvars
   build:
     commands:
-      # create pull request to main
-      - echo "doing main branch things"
+      # deploys terraform cluster for dev enviroment (change cluster name and region, and manifest loc)
+      - echo "creating dev enviroment"
+      - terraform apply -auto-approve -var-file=terraform_dev.tfvars
+      - aws eks update-kubeconfig --region your-region --name your-dev-cluster --kubeconfig kubeconfig-dev.yaml
+      - kubectl apply -f (new_location)/argocd-app-dev.yaml --kubeconfig=kubeconfig-dev.yaml
+
+      # deploys terraform cluster for stg enviroment (change cluster name and region, and manifest loc)
+      - echo "creating stg enviroment"
+      - terraform apply -auto-approve -var-file=terraform_stg.tfvars
+      - aws eks update-kubeconfig --region your-region --name your-stg-cluster --kubeconfig kubeconfig-stg.yaml
+      - kubectl apply -f (new_location)/argocd-app-stg.yaml --kubeconfig=kubeconfig-stg.yaml
+
+      # deploys terraform cluster for stg enviroment (change cluster name and region, and manifest loc)
+      - echo "creating prod enviroment"
+      - terraform apply -auto-approve -var-file=terraform_prod.tfvars
+      - aws eks update-kubeconfig --region your-region --name your-prod-cluster --kubeconfig kubeconfig-prod.yaml
+      - kubectl apply -f (new_location)/argocd-app-prod.yaml --kubeconfig=kubeconfig-prod.yaml
+      
   post_build:
     commands:
       # Push Docker Image to ECR Repository

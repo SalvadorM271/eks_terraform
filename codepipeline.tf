@@ -136,30 +136,7 @@ module aws_codepipeline_main {
 
 // ------------------------------------------infra repo pipelines----------------------------------------------
 
-module aws_codepipeline_feature_infra {
-  source = "./modules/aws_codepipeline"
-  
-  codebuild_project_name = "codebuild-aws-pipeline-infra"
-
-  github_token = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["github_token"]
-
-  bucket_name = "test-for-codepipeline-4736478364-infra"
-
-  pipeline_name = "mern-pipeline-infra"
-
-  frontend_repo = "" // not needed for this, only use to create env so can be blank (creates blank env)
-
-  git_email = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["git_email"]
-
-  git_user = jsondecode(data.aws_secretsmanager_secret_version.git-credentials.secret_string)["git_user"]
-
-  git_repo = "eks_terraform" // change repo if needed
-
-  git_branch = "feature/*" // change branch
-
-  buildspec_file = "buildspec.yml" // change codebuild file name
-
-}
+// aws codepipelien does not take wild cards so feature/* branch needs to be pull manually
 
 module aws_codepipeline_main_infra {
   source = "./modules/aws_codepipeline"

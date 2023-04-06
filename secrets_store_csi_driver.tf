@@ -76,6 +76,8 @@ resource "helm_release" "secrets-store-csi-driver" {
     name  = "syncSecret.enabled"
     value = "true"
   }
+
+  depends_on [aws_eks_cluster.demo]
   
   //this dont show on the documentation but aparently you can add them to any helm release
 }
@@ -94,5 +96,7 @@ resource "helm_release" "secrets-store-csi-driver-provider-aws" {
     name  = "region"
     value = "us-east-1"
   }
+
+  depends_on [aws_eks_cluster.demo]
 
 }

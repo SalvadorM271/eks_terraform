@@ -9,7 +9,7 @@ resource "kubernetes_namespace" "argo_cd" {
   metadata {
     name = "argo-cd"
   }
-  depends_on [aws_eks_cluster.demo]
+  depends_on = [aws_eks_cluster.demo]
 }
 
 // helm chart for argocd, more here: https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd 
@@ -32,5 +32,5 @@ resource "helm_release" "argo-cd" {
     value = "argo-cd" // creates service account
   }
 
-  depends_on [aws_eks_cluster.demo]
+  depends_on = [aws_eks_cluster.demo]
 }

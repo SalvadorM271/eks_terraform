@@ -77,7 +77,7 @@ resource "helm_release" "secrets-store-csi-driver" {
     value = "true"
   }
 
-  depends_on [aws_eks_cluster.demo]
+  depends_on = [aws_eks_cluster.demo]
   
   //this dont show on the documentation but aparently you can add them to any helm release
 }
@@ -97,6 +97,6 @@ resource "helm_release" "secrets-store-csi-driver-provider-aws" {
     value = "us-east-1"
   }
 
-  depends_on [aws_eks_cluster.demo]
+  depends_on = [aws_eks_cluster.demo]
 
 }

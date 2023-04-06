@@ -1,3 +1,6 @@
+/* NO NEED to edit this one since im using diferrent tfvars file and different workspaces for my state 
+terraform will deploy this in the right cluster, see eks notes*/
+
 // helm provider already define in loadbalancer_controller.tf
 
 // creates argo cd namespace

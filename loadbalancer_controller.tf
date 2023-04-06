@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role_policy"
     actions = ["sts:AssumeRoleWithWebIdentity"]
     effect  = "Allow"
 
-    condition {
+    condition { // uses open id connect provider to be created so no need to edit for multi env
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // to make it better pass var for namespace
       values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"] // put your service acc name here and namespace wher it lives
@@ -28,14 +28,14 @@ data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role_policy"
 resource "aws_iam_role" "aws_load_balancer_controller" {
   //the policy define with data is like a template for easy use we pass it here to create the policy
   assume_role_policy = data.aws_iam_policy_document.aws_load_balancer_controller_assume_role_policy.json
-  name               = "aws-load-balancer-controller"
+  name               = "${var.project_name}-alb-controller-rol-${var.environment}"
 }
 
 //another policy is needed but i use a file instead of doing everything here to make it redable
 
 resource "aws_iam_policy" "aws_load_balancer_controller" {
   policy = file("./alb_pol/AWSLoadBalancerController.json")
-  name   = "AWSLoadBalancerController"
+  name   = "${var.project_name}-alb-controller-pol-${var.environment}"
 }
 
 // attaching the policy to the rol created bf
@@ -56,7 +56,7 @@ output "aws_load_balancer_controller_role_arn" {
 /* now lets deploy it to the eks cluster. i decided to do this with terraform since this goes on kube-system 
 namespace unlike the external dns which is created for each namespace*/
 
-provider "helm" {
+provider "helm" { 
   kubernetes {
     host                   = aws_eks_cluster.demo.endpoint
     cluster_ca_certificate = base64decode(aws_eks_cluster.demo.certificate_authority[0].data)
@@ -67,6 +67,8 @@ provider "helm" {
     }
   }
 }
+
+// no need to modify this thx to state this is created on the proper env
 
 resource "helm_release" "aws-load-balancer-controller" {
   name = "aws-load-balancer-controller"

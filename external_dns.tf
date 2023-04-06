@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "external_dns_assume_role_policy" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     effect  = "Allow"
 
-    condition {
+    condition { // uses open id connect provider to be created so no need to edit for multi env
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // pass var for na
       values   = ["system:serviceaccount:default:external-dns"] // same name needed on sa <--- check
@@ -28,14 +28,14 @@ data "aws_iam_policy_document" "external_dns_assume_role_policy" {
 resource "aws_iam_role" "external-dns" {
   //the policy define with data is like a template for easy use we pass it here to create the policy
   assume_role_policy = data.aws_iam_policy_document.external_dns_assume_role_policy.json
-  name               = "external-dns"
+  name               = "${var.project_name}-ext-dns-rol-${var.environment}"
 }
 
 //another policy is needed but i use a file instead of doing everything here to make it redable
 
 resource "aws_iam_policy" "external-dns" {
   policy = file("./dns_pol/external-dns.json")
-  name   = "external-dns"
+  name   = "${var.project_name}-ext-dns-pol-${var.environment}"
 }
 
 // attaching the policy to the rol created bf
@@ -58,7 +58,7 @@ output "external-dns_role_arn" {
 //---------------------policy to use secrets manager-------------------------
 
 resource "aws_iam_policy" "eks_csi_driver_policy" {
-  name        = "eks-deployment-policy"
+  name        = "${var.project_name}-secrets-pol-${var.environment}"
   policy      = jsonencode({
     Version = "2012-10-17"
     Statement = [

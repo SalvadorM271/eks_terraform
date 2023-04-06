@@ -1,7 +1,7 @@
 # --------------------------------- provider --------------------------
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.region // us-east-1
 }
 
 terraform {
@@ -17,12 +17,12 @@ terraform {
 # -----------------------------------vpc---------------------------------------
 
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.vpc_cidr // 10.0.0.0/16
   enable_dns_support   = true
   enable_dns_hostnames = true
 
   tags = {
-    Name = "main"
+    Name = "${var.project_name}-vpc-${var.environment}"
   }
 }
 
@@ -32,7 +32,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "igw"
+    Name = "${var.project_name}-igw-${var.environment}"
   }
 }
 
@@ -42,11 +42,11 @@ resource "aws_internet_gateway" "igw" {
 
 resource "aws_subnet" "private-us-east-1a" {
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.0.0/19"
-  availability_zone = "us-east-1a"
+  cidr_block        = var.private_subnet1_cidr // 10.0.0.0/19
+  availability_zone = "${var.region}a" // us-east-1a
 
   tags = {
-    "Name"                            = "private-us-east-1a"
+    "Name"                            = "private-${var.region}a" // private-us-east-1a
     "kubernetes.io/role/internal-elb" = "1"
     "kubernetes.io/cluster/demo"      = "owned"
   }
@@ -54,11 +54,11 @@ resource "aws_subnet" "private-us-east-1a" {
 
 resource "aws_subnet" "private-us-east-1b" {
   vpc_id            = aws_vpc.main.id
-  cidr_block        = "10.0.32.0/19"
-  availability_zone = "us-east-1b"
+  cidr_block        = var.private_subnet2_cidr // 10.0.32.0/19
+  availability_zone = "${var.region}b"
 
   tags = {
-    "Name"                            = "private-us-east-1b"
+    "Name"                            = "private-${var.region}b"
     "kubernetes.io/role/internal-elb" = "1"
     "kubernetes.io/cluster/demo"      = "owned"
   }
@@ -66,12 +66,12 @@ resource "aws_subnet" "private-us-east-1b" {
 
 resource "aws_subnet" "public-us-east-1a" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.64.0/19"
-  availability_zone       = "us-east-1a"
+  cidr_block              = var.public_subnet1_cidr // 10.0.64.0/19
+  availability_zone       = "${var.region}a"
   map_public_ip_on_launch = true
 
   tags = {
-    "Name"                       = "public-us-east-1a"
+    "Name"                       = "public-${var.region}a"
     "kubernetes.io/role/elb"     = "1"
     "kubernetes.io/cluster/demo" = "owned"
   }
@@ -79,12 +79,12 @@ resource "aws_subnet" "public-us-east-1a" {
 
 resource "aws_subnet" "public-us-east-1b" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.96.0/19"
-  availability_zone       = "us-east-1b"
+  cidr_block              = var.public_subnet2_cidr // 10.0.96.0/19
+  availability_zone       = "${var.region}b"
   map_public_ip_on_launch = true
 
   tags = {
-    "Name"                       = "public-us-east-1b"
+    "Name"                       = "public-${var.region}b"
     "kubernetes.io/role/elb"     = "1"
     "kubernetes.io/cluster/demo" = "owned"
   }
@@ -96,7 +96,7 @@ resource "aws_eip" "nat" {
   vpc = true
 
   tags = {
-    Name = "nat"
+    Name = "${var.project_name}-eip1-${var.environment}"
   }
 }
 
@@ -104,7 +104,7 @@ resource "aws_eip" "nat2" {
   vpc = true
 
   tags = {
-    Name = "nat"
+    Name = "${var.project_name}-eip2-${var.environment}"
   }
 }
 
@@ -113,7 +113,7 @@ resource "aws_nat_gateway" "nat" {
   subnet_id     = aws_subnet.public-us-east-1a.id
 
   tags = {
-    Name = "nat"
+    Name = "${var.project_name}-nat1-${var.environment}"
   }
 
   depends_on = [aws_internet_gateway.igw]
@@ -124,7 +124,7 @@ resource "aws_nat_gateway" "nat2" {
   subnet_id     = aws_subnet.public-us-east-1b.id
 
   tags = {
-    Name = "nat"
+    Name = "${var.project_name}-nat2-${var.environment}"
   }
 
   depends_on = [aws_internet_gateway.igw]
@@ -154,7 +154,7 @@ resource "aws_route_table" "private" {
   ]
 
   tags = {
-    Name = "private"
+    Name = "${var.project_name}-private-rt-${var.environment}"
   }
 }
 
@@ -180,7 +180,7 @@ resource "aws_route_table" "public" {
   ]
 
   tags = {
-    Name = "public"
+    Name = "${var.project_name}-public-rt-${var.environment}"
   }
 }
 
@@ -208,7 +208,7 @@ resource "aws_route_table_association" "public-us-east-1b" {
 # --------------------------------eks cluster----------------------------
 
 resource "aws_iam_role" "demo" {
-  name = "eks-cluster-demo"
+  name = "${var.project_name}-eks-cluster-rol-${var.environment}"
 
   assume_role_policy = <<POLICY
 {
@@ -232,7 +232,7 @@ resource "aws_iam_role_policy_attachment" "demo-AmazonEKSClusterPolicy" {
 }
 
 resource "aws_eks_cluster" "demo" {
-  name     = "demo"
+  name     = "${var.project_name}-eks-cluster-${var.environment}"
   role_arn = aws_iam_role.demo.arn
 
   vpc_config {
@@ -250,7 +250,7 @@ resource "aws_eks_cluster" "demo" {
 #--------------------------------node groups------------------------------------
 
 resource "aws_iam_role" "nodes" {
-  name = "eks-node-group-nodes"
+  name = "${var.project_name}-eks-node-group-nodes-rol-${var.environment}"
 
   assume_role_policy = jsonencode({
     Statement = [{
@@ -281,7 +281,7 @@ resource "aws_iam_role_policy_attachment" "nodes-AmazonEC2ContainerRegistryReadO
 
 resource "aws_eks_node_group" "private-nodes" {
   cluster_name    = aws_eks_cluster.demo.name
-  node_group_name = "private-nodes"
+  node_group_name = "${var.project_name}-private-nodes-${var.environment}"
   node_role_arn   = aws_iam_role.nodes.arn
 
   subnet_ids = [
@@ -290,12 +290,12 @@ resource "aws_eks_node_group" "private-nodes" {
   ]
 
   capacity_type  = "ON_DEMAND"
-  instance_types = ["t3.small"] #t3.small
+  instance_types = [var.node_group_instance] // t3.small
 
   scaling_config {
-    desired_size = 4
-    max_size     = 10
-    min_size     = 0
+    desired_size = var.node_group_desire_size // 4
+    max_size     = var.node_group_max_size //10
+    min_size     = var.node_group_min_size //0
   }
 
   update_config {
@@ -349,11 +349,11 @@ data "aws_iam_policy_document" "eks_cluster_autoscaler_assume_role_policy" {
 
 resource "aws_iam_role" "eks_cluster_autoscaler" {
   assume_role_policy = data.aws_iam_policy_document.eks_cluster_autoscaler_assume_role_policy.json
-  name               = "eks-cluster-autoscaler"
+  name               = "${var.project_name}-cluster-scaler-rol-${var.environment}"
 }
 
 resource "aws_iam_policy" "eks_cluster_autoscaler" {
-  name = "eks-cluster-autoscaler"
+  name = "${var.project_name}-cluster-scaler-pol-${var.environment}"
 
   policy = jsonencode({
     Statement = [{
@@ -381,6 +381,17 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_autoscaler_attach" {
 output "eks_cluster_autoscaler_arn" {
   value = aws_iam_role.eks_cluster_autoscaler.arn
 }
+
+
+// done editing
+// main ()
+// argo cd
+// codepipeline (now only creates pipelines (all of them) when creating dev env)
+// external_dns
+// kubernetes.tf
+// load_balancer_controller.tf
+// rds.tf ()
+// secrets_store_csi_driver.tf
 
 
 

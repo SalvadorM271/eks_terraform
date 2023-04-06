@@ -3,7 +3,7 @@
 # --------------------------RDS security group--------------------------
 
 resource "aws_security_group" "rds_sg" {
-  name   = "rds_sg"
+  name   = "${var.project_name}-rds-sg-${var.environment}"
   vpc_id = aws_vpc.main.id
 
   ingress {
@@ -28,7 +28,7 @@ resource "aws_security_group" "rds_sg" {
 # -------------------------------DB subnet group----------------------------
 
 resource "aws_db_subnet_group" "rds_eks" {
-  name       = "main"
+  name       = "${var.project_name}-subnet-gr-${var.environment}"
   subnet_ids = [aws_subnet.private-us-east-1a.id,
     aws_subnet.private-us-east-1b.id]
 }
@@ -36,14 +36,14 @@ resource "aws_db_subnet_group" "rds_eks" {
 # --------------------------------RDS database------------------------------
 
 resource "aws_db_instance" "rds" {
-  identifier              = "usermgmtdb"
+  identifier              = "${var.project_name}-usermgmtdb-${var.environment}" // name chage broke app
   engine                  = "mysql"
   engine_version          = "5.7"
-  instance_class          = "db.t2.micro"
+  instance_class          = var.rds_instance // db.t2.micro
   allocated_storage       = 20
-  storage_type            = "gp2"
+  storage_type            = var.rds_storage_type // gp2
   name                    = "usermgmt"
-  username                = "dbadmin"
+  username                = "dbadmin" // i could use secrets for this two
   password                = "dbpassword11"
   publicly_accessible     = false
   skip_final_snapshot     = true

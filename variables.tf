@@ -21,11 +21,11 @@ variable region {
 }
 
 variable project_name {
-    default = "eks-test-cluster"
+    default = "eks"
 }
 
 variable environment {
-    default = "dev"
+    default = "stg"
 }
 
 variable vpc_cidr {
@@ -53,7 +53,7 @@ variable node_group_instance {
 }
 
 variable node_group_desire_size {
-    default = "4"
+    default = "5"
 }
 
 variable node_group_max_size {
@@ -62,6 +62,14 @@ variable node_group_max_size {
 
 variable node_group_min_size {
     default = "0"
+}
+
+variable jenkins_admin_user {
+    default = "test"
+}
+
+variable jenkins_admin_password {
+    default = "test"
 }
 
 variable rds_instance {

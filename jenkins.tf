@@ -7,7 +7,7 @@
 
 
 
-// storage class
+// storage class (needed to connect efs to the pv and pvc created by the helm chart)
 
 resource "kubernetes_storage_class" "efs_jenkins" {
   metadata {
@@ -45,6 +45,21 @@ resource "helm_release" "jenkins" {
   set {
     name  = "persistence.storageClass"
     value = "efs-jenkins"
+  }
+
+  set {
+    name  = "controller.serviceType"
+    value = "LoadBalancer"
+  }
+
+  set {
+    name  = "controller.service.port"
+    value = "8080"
+  }
+
+  set {
+    name  = "controller.service.targetPort"
+    value = "8080"
   }
 
   # set_sensitive {

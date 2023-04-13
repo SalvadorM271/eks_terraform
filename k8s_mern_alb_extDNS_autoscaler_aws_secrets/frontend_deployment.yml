@@ -17,7 +17,7 @@ spec:
         app: mern-frontend
     spec:      
       containers:
-        - name: mern-frontend
+        - name: mern-frontend # if it does not work tag or image wrong
           image: 153042419275.dkr.ecr.us-east-1.amazonaws.com/eks_mern_frontend:2023-03-28.19.53.39.30bd8257
           ports: 
             - containerPort: 80                

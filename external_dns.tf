@@ -28,7 +28,7 @@ data "aws_iam_policy_document" "external_dns_assume_role_policy" {
 resource "aws_iam_role" "external-dns" {
   //the policy define with data is like a template for easy use we pass it here to create the policy
   assume_role_policy = data.aws_iam_policy_document.external_dns_assume_role_policy.json
-  name               = "${var.project_name}-ext-dns-rol-${var.environment}"
+  name               = "external-dns-${var.environment}"
 }
 
 //another policy is needed but i use a file instead of doing everything here to make it redable

@@ -25,7 +25,7 @@ variable project_name {
 }
 
 variable environment {
-    default = "stg"
+    default = "prod"
 }
 
 variable vpc_cidr {

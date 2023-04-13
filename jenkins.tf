@@ -36,30 +36,9 @@ resource "aws_efs_mount_target" "jenkins" {
   security_groups = [aws_security_group.efs_sg.id] 
 }
 
-// creates persistent volume (kubernetes provider already define in kubernetes.tf)
+// creates persistent volume (no need already created by helm chart)
 
-resource "kubernetes_persistent_volume" "jenkins" {
-  metadata {
-    name = "jenkins-efs-pv"
-  }
-  spec {
-    capacity = {
-      storage = "10Gi" # Adjust the storage capacity as needed
-    }
-    access_modes = ["ReadWriteMany"] # Allows multiple pods to read and write concurrently
-    persistent_volume_reclaim_policy = "Retain" # Retains the volume data when the PVC is deleted
-    storage_class_name = "efs-jenkins"
-    persistent_volume_source {
-      csi {
-        driver = "efs.csi.aws.com"
-        volume_handle = aws_efs_file_system.jenkins.id // the efs volume i created
-        volume_attributes = {
-          "path" = "/var/jenkins_home" # The path of the exported EFS volume
-        }
-      }
-    }
-  }
-}
+
 
 // storage class
 
@@ -79,27 +58,9 @@ resource "kubernetes_storage_class" "efs_jenkins" {
 }
 
 
-// creates persisten volume claim for kubernetes
+// creates persisten volume claim for kubernetes (no need already created by helm chart)
 
-resource "kubernetes_persistent_volume_claim" "jenkins" {
-  metadata {
-    name      = "jenkins-efs-pvc"
-    namespace = "default" # if this change you need to create the namespace
-  }
-  spec {
-    access_modes = ["ReadWriteMany"] # Allows multiple pods to read and write concurrently
-    resources {
-      requests = {
-        storage = "10Gi" # Adjust the storage request as needed
-      }
-    }
-    volume_name = kubernetes_persistent_volume.jenkins.metadata[0].name
-  }
-  timeouts {
-    create = "10m" # Increase this value as needed
-  }
-  depends_on = [aws_eks_cluster.demo]
-}
+
 
 // deploy jenkins using helm, consider using this https://www.jenkins.io/projects/jcasc/ save config as yml
 

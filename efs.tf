@@ -140,3 +140,36 @@ resource "aws_efs_mount_target" "efs_vol" {
   subnet_id       = local.subnet_ids[count.index] // loops through every subnet
   security_groups = [aws_security_group.efs_sg.id] 
 }
+
+// if your are connecting this volume to a helm chart you would need to create this
+
+# resource "kubernetes_storage_class" "efs_jenkins" {
+#   metadata {
+#     name = "efs-jenkins"
+#   }
+#   storage_provisioner = "efs.csi.aws.com"
+#   parameters = {
+#     provisioningMode = "efs-ap" # Add this line (change to "efs" if you prefer legacy mode)
+#     fileSystemId     = aws_efs_file_system.efs_vol.id
+#     directoryPerms   = "700"
+#     gidRangeStart    = "1000"
+#     gidRangeEnd      = "2000"
+#     basePath         = "/var/jenkins_home"
+#   }
+# }
+
+# and the add this set to the helm release
+
+# resource "helm_release" "jenkins" {
+#   name       = "jenkins"
+#   repository = "https://charts.jenkins.io"
+#   chart      = "jenkins"
+#   namespace  = "default" 
+#   version    = "4.3.20"
+
+#   set {
+#     name  = "persistence.storageClass"
+#     value = "efs-jenkins"
+#   }
+
+# }

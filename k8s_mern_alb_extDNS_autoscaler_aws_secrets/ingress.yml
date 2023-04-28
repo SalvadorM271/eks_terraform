@@ -26,7 +26,7 @@ spec:
   rules:
   - http:
       paths:
-      - path: /
+      - path: / # using paths you can determing which microservice is display on which path
         pathType: Prefix
         backend:
           service:

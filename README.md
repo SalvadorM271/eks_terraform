@@ -1,4 +1,4 @@
-## ECS cluster
+## EKS cluster
 
 This is a terraform project in charge of creating the IaC for an EKS cluster in aws, the application hosted
 in the cluster can be found in the following repository:

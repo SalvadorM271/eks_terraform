@@ -1,7 +1,7 @@
 /*SO HERE IM CREATING ALL THE PIPELINES I NEED IN ONE GO, i dont need to create more when i create
 the other two enviroments, so im gonna put a restriction so it only creates them when i create
 the dev enviroment*/
-
+/*
 // ----------------------------------------------credentials-----------------------------------------------
 
 // i decided to put this here and not inside the module to make this as modular as possible
@@ -176,4 +176,6 @@ module aws_codepipeline_main_infra {
   buildspec_file = "buildspec_main.yml" // change codebuild file name
 
 }
+
+*/
 

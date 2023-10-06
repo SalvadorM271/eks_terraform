@@ -68,7 +68,7 @@ resource "aws_iam_policy" "eks_csi_driver_policy" {
         /*you need to specify the arn of the secret you want to use in the app if you need
         more than one you can use a comma and if you need them all you can use
         arn:aws:secretsmanager:*:*:secret:*(not tested)*/
-        Resource = ["arn:aws:secretsmanager:us-east-1:153042419275:secret:cloudflare-ZlOXvE"]
+        Resource = ["arn:aws:secretsmanager:us-east-1:438555236323:secret:cloudflare-8ACs61"]
       }
     ]
   })

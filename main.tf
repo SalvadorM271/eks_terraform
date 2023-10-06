@@ -11,12 +11,13 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.0"
+      version = "4.44.0"
     }
     
   }
 
   cloud {
+    hostname     = "app.terraform.io"
     organization = "personal_demos"
 
     workspaces {
@@ -157,12 +158,13 @@ resource "aws_route_table" "private" {
       egress_only_gateway_id     = ""
       gateway_id                 = ""
       instance_id                = ""
-      ipv6_cidr_block            = ""
+      ipv6_cidr_block            = "::/0"
       local_gateway_id           = ""
       network_interface_id       = ""
       transit_gateway_id         = ""
       vpc_endpoint_id            = ""
       vpc_peering_connection_id  = ""
+      core_network_arn           = ""
     },
   ]
 
@@ -183,12 +185,13 @@ resource "aws_route_table" "public" {
       destination_prefix_list_id = ""
       egress_only_gateway_id     = ""
       instance_id                = ""
-      ipv6_cidr_block            = ""
+      ipv6_cidr_block            = "::/0"
       local_gateway_id           = ""
       network_interface_id       = ""
       transit_gateway_id         = ""
       vpc_endpoint_id            = ""
       vpc_peering_connection_id  = ""
+      core_network_arn           = ""
     },
   ]
 

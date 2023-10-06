@@ -2,7 +2,7 @@
 terraform will deploy this in the right cluster, see eks notes*/
 
 // helm provider already define in loadbalancer_controller.tf
-
+/*
 // creates argo cd namespace
 
 resource "kubernetes_namespace" "argo_cd" {
@@ -34,3 +34,5 @@ resource "helm_release" "argo-cd" {
 
   depends_on = [aws_eks_cluster.demo]
 }
+
+*/

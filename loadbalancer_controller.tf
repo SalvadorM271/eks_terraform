@@ -45,6 +45,25 @@ resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller_attach" 
   policy_arn = aws_iam_policy.aws_load_balancer_controller.arn
 }
 
+// new policy required
+
+resource "aws_iam_role_policy" "aws_load_balancer_controller_inline_policy" {
+  name   = "${var.project_name}-inline-pol-tags-${var.environment}"
+  role   = aws_iam_role.aws_load_balancer_controller.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "elasticloadbalancing:AddTags",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+
 // outputing the rol arn (you can get by just knowing the acc number and the name of the role)
 
 output "aws_load_balancer_controller_role_arn" {

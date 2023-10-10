@@ -1,5 +1,5 @@
 ##-------------------only need this for relational database deployments--------------------
-
+/*
 # --------------------------RDS security group--------------------------
 
 resource "aws_security_group" "rds_sg" {
@@ -50,5 +50,7 @@ resource "aws_db_instance" "rds" {
   vpc_security_group_ids  = [aws_security_group.rds_sg.id]
   db_subnet_group_name    = aws_db_subnet_group.rds_eks.name
 }
+
+*/
 
 

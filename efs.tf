@@ -72,6 +72,10 @@ resource "kubernetes_service_account" "efs_csi_controller_sa" {
       "eks.amazonaws.com/role-arn" = aws_iam_role.efs_csi_rol.arn
     }
   }
+
+  depends_on = [
+    aws_eks_node_group.private-nodes
+  ]
 }
 
 // deploy efs csi driver controller in eks cluster
@@ -90,6 +94,10 @@ resource "helm_release" "aws_efs_csi_driver" {
     name  = "controller.serviceAccount.name"
     value = kubernetes_service_account.efs_csi_controller_sa.metadata[0].name
   }
+
+  depends_on = [
+    aws_eks_node_group.private-nodes, kubernetes_service_account.efs_csi_controller_sa
+  ]
 }
 
 // create EFS volume for jenkins (you may use it for other things)
@@ -100,6 +108,11 @@ resource "aws_efs_file_system" "efs_vol" {
   tags = {
     Name = "efs_vol"
   }
+
+  depends_on = [
+    aws_eks_node_group.private-nodes, helm_release.aws_efs_csi_driver
+  ]
+
 }
 
 // -----------------------
@@ -138,7 +151,11 @@ resource "aws_efs_mount_target" "efs_vol" {
   count           = length(local.subnet_ids) // result of count is 2 so two resources are created
   file_system_id  = aws_efs_file_system.efs_vol.id
   subnet_id       = local.subnet_ids[count.index] // loops through every subnet
-  security_groups = [aws_security_group.efs_sg.id] 
+  security_groups = [aws_security_group.efs_sg.id]
+
+  depends_on = [
+    aws_eks_node_group.private-nodes, aws_efs_file_system.efs_vol
+  ] 
 }
 
 // if your are connecting this volume to a helm chart you would need to create this

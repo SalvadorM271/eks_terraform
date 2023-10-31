@@ -12,8 +12,8 @@ data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role_policy"
     condition { // uses open id connect provider to be created so no need to edit for multi env
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // to make it better pass var for namespace
-      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"] // put your service acc name here and namespace wher it lives
-      // rol is restricted to only be use by the service account define above by sub, check eks notes
+      values   = ["system:serviceaccount:default:aws-load-balancer-controller"] // put your service acc name here and namespace wher it lives
+      // rol is restricted to only be use by the service account and in the namespace define above by sub, check eks notes
     }
 
     principals {
@@ -94,7 +94,7 @@ resource "helm_release" "aws-load-balancer-controller" {
 
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  namespace  = "kube-system"
+  namespace  = "default"
   version    = "1.4.1"
 
   set {

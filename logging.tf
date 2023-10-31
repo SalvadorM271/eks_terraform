@@ -4,7 +4,7 @@
 #   }
 # }
 
-# this helm chart does not have permissions in its cluster role to use the alb controller and external dns controller if they are deploy in another namespace
+# TODO deploy external dns using helm instead of yaml file
 
 resource "helm_release" "kube-prometheus-stack-chart" {
   name       = "kube-prometheus-stack"

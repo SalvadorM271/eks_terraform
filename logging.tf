@@ -4,7 +4,7 @@
 #   }
 # }
 
-# TODO deploy external dns using helm instead of yaml file
+# externaldns and ingressClass need to be deploy bf this helm chart
 
 resource "helm_release" "kube-prometheus-stack-chart" {
   name       = "kube-prometheus-stack"
@@ -17,7 +17,7 @@ resource "helm_release" "kube-prometheus-stack-chart" {
 
   # this custom values from line 928 to line 968 were modify so grafana creates an ingress so the service is expose by an alb
 
-  values = [file("./helm_custom_values/kube-prometheus-stack/values.yaml")] #error ingressClass, external dns, secrets needed bf hand
+  values = [file("./helm_custom_values/kube-prometheus-stack/values.yaml")] 
 
   # since after creating the ingress for grafana its service remains of type clusterIp, and the load balancer controller requires type NodePort the following was required
 
@@ -26,9 +26,9 @@ resource "helm_release" "kube-prometheus-stack-chart" {
     value = "NodePort"
   }
 
-  # you can check the generated ingress with kubectl get ingress createdIngressName -n prometheus-stack -oyaml
+  # you can check the generated ingress with kubectl get ingress createdIngressName -n namespaceName -oyaml
   # to get the ingress name use kubectl get ingress -n prometheus-stack
 
-  depends_on = [aws_eks_node_group.private-nodes]
+  depends_on = [aws_eks_node_group.private-nodes, helm_release.external_dns]
 
 }

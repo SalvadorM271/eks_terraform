@@ -79,6 +79,43 @@ resource "aws_iam_role_policy_attachment" "external-dns_attach_secrets" {
   policy_arn = aws_iam_policy.eks_csi_driver_policy.arn
 }
 
+// all the resources below are not needed if helm chart is not use
+
+data "aws_secretsmanager_secret" "cloudflare_credentials" {
+  name = "cloudflare"
+}
+
+data "aws_secretsmanager_secret_version" "cloudflare_credentials" {
+  secret_id = data.aws_secretsmanager_secret.cloudflare_credentials.id
+}
+
+resource "helm_release" "external_dns" {
+  name       = "external-dns"
+  repository = "oci://registry-1.docker.io/bitnamicharts"
+  chart      = "external-dns"
+  version    = "6.28.1"
+
+  namespace = "default"
+
+  set {
+    name = "provider"
+    value = "cloudflare"
+  }
+
+  set {
+    name = "cloudflare.email"
+    value = jsondecode(data.aws_secretsmanager_secret_version.cloudflare_credentials.secret_string)["cloudflare_email"]
+  }
+
+  set {
+    name = "cloudflare.apiKey"
+    value = jsondecode(data.aws_secretsmanager_secret_version.cloudflare_credentials.secret_string)["cloudflare_key"]
+  }
+
+  depends_on = [aws_eks_node_group.private-nodes]
+
+}
+
 
 
 

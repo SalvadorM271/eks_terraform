@@ -57,7 +57,7 @@ resource "aws_iam_role_policy_attachment" "aws_csi_driver_attach" {
   policy_arn = aws_iam_policy.eks_csi_driver_policy.arn
 }*/
 
-
+// no need to adjust this for mult env deployment since it will be deploy on proper cluster thx to state
 
 resource "helm_release" "secrets-store-csi-driver" {
   name       = "csi-secrets-store"
@@ -76,9 +76,13 @@ resource "helm_release" "secrets-store-csi-driver" {
     name  = "syncSecret.enabled"
     value = "true"
   }
+
+  depends_on = [aws_eks_node_group.private-nodes]
   
   //this dont show on the documentation but aparently you can add them to any helm release
 }
+
+// no need to adjust this for mult env deployment since it will be deploy on proper cluster thx to state
 
 resource "helm_release" "secrets-store-csi-driver-provider-aws" {
   name       = "secrets-provider-aws"
@@ -92,5 +96,7 @@ resource "helm_release" "secrets-store-csi-driver-provider-aws" {
     name  = "region"
     value = "us-east-1"
   }
+
+  depends_on = [aws_eks_node_group.private-nodes]
 
 }

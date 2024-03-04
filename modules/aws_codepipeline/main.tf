@@ -124,6 +124,7 @@ resource "aws_iam_role" "codebuild_role" {
   })
 }
 
+// in the future is best to follow least privilege principle, but this is just for testing so its fine
 resource "aws_iam_role_policy_attachment" "codebuild_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
   role       = aws_iam_role.codebuild_role.name

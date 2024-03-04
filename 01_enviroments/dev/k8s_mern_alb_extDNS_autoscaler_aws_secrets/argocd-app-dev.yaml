@@ -1,0 +1,21 @@
+# create dev enviroment base of the different enviroments separated by folders on the main branch
+# basically you are telling argo, on this cluster monitor changes on the dev path of this repo and branch
+# making the branch basically irrelevant since you rely on the path to know what to deploy and monitor
+# even thou the branch always needs to be included
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: dev-mern-app
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/SalvadorM271/eks_terraform.git
+    targetRevision: main
+    path: eks_terraform/01_enviroments/dev/k8s_mern_alb_extDNS_autoscaler_aws_secrets
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

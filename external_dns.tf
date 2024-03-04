@@ -9,7 +9,7 @@ data "aws_iam_policy_document" "external_dns_assume_role_policy" {
     actions = ["sts:AssumeRoleWithWebIdentity"]
     effect  = "Allow"
 
-    condition {
+    condition { // uses open id connect provider to be created so no need to edit for multi env
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // pass var for na
       values   = ["system:serviceaccount:default:external-dns"] // same name needed on sa <--- check
@@ -28,14 +28,14 @@ data "aws_iam_policy_document" "external_dns_assume_role_policy" {
 resource "aws_iam_role" "external-dns" {
   //the policy define with data is like a template for easy use we pass it here to create the policy
   assume_role_policy = data.aws_iam_policy_document.external_dns_assume_role_policy.json
-  name               = "external-dns"
+  name               = "external-dns-${var.environment}"
 }
 
 //another policy is needed but i use a file instead of doing everything here to make it redable
 
 resource "aws_iam_policy" "external-dns" {
   policy = file("./dns_pol/external-dns.json")
-  name   = "external-dns"
+  name   = "${var.project_name}-ext-dns-pol-${var.environment}"
 }
 
 // attaching the policy to the rol created bf
@@ -58,7 +58,7 @@ output "external-dns_role_arn" {
 //---------------------policy to use secrets manager-------------------------
 
 resource "aws_iam_policy" "eks_csi_driver_policy" {
-  name        = "eks-deployment-policy"
+  name        = "${var.project_name}-secrets-pol-${var.environment}"
   policy      = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -68,7 +68,7 @@ resource "aws_iam_policy" "eks_csi_driver_policy" {
         /*you need to specify the arn of the secret you want to use in the app if you need
         more than one you can use a comma and if you need them all you can use
         arn:aws:secretsmanager:*:*:secret:*(not tested)*/
-        Resource = ["arn:aws:secretsmanager:us-east-1:153042419275:secret:cloudflare-ZlOXvE"]
+        Resource = ["arn:aws:secretsmanager:us-east-1:438555236323:secret:cloudflare-8ACs61"]
       }
     ]
   })
@@ -77,6 +77,43 @@ resource "aws_iam_policy" "eks_csi_driver_policy" {
 resource "aws_iam_role_policy_attachment" "external-dns_attach_secrets" {
   role       = aws_iam_role.external-dns.name
   policy_arn = aws_iam_policy.eks_csi_driver_policy.arn
+}
+
+// all the resources below are not needed if helm chart is not use
+
+data "aws_secretsmanager_secret" "cloudflare_credentials" {
+  name = "cloudflare"
+}
+
+data "aws_secretsmanager_secret_version" "cloudflare_credentials" {
+  secret_id = data.aws_secretsmanager_secret.cloudflare_credentials.id
+}
+
+resource "helm_release" "external_dns" {
+  name       = "external-dns"
+  repository = "oci://registry-1.docker.io/bitnamicharts"
+  chart      = "external-dns"
+  version    = "6.28.1"
+
+  namespace = "default"
+
+  set {
+    name = "provider"
+    value = "cloudflare"
+  }
+
+  set {
+    name = "cloudflare.email"
+    value = jsondecode(data.aws_secretsmanager_secret_version.cloudflare_credentials.secret_string)["cloudflare_email"]
+  }
+
+  set {
+    name = "cloudflare.apiKey"
+    value = jsondecode(data.aws_secretsmanager_secret_version.cloudflare_credentials.secret_string)["cloudflare_key"]
+  }
+
+  depends_on = [aws_eks_node_group.private-nodes]
+
 }
 
 

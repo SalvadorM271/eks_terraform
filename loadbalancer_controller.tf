@@ -9,11 +9,11 @@ data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role_policy"
     actions = ["sts:AssumeRoleWithWebIdentity"]
     effect  = "Allow"
 
-    condition {
+    condition { // uses open id connect provider to be created so no need to edit for multi env
       test     = "StringEquals"
       variable = "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" // to make it better pass var for namespace
-      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"] // put your service acc name here and namespace wher it lives
-      // rol is restricted to only be use by the service account define above by sub, check eks notes
+      values   = ["system:serviceaccount:default:aws-load-balancer-controller"] // put your service acc name here and namespace wher it lives
+      // rol is restricted to only be use by the service account and in the namespace define above by sub, check eks notes
     }
 
     principals {
@@ -28,14 +28,14 @@ data "aws_iam_policy_document" "aws_load_balancer_controller_assume_role_policy"
 resource "aws_iam_role" "aws_load_balancer_controller" {
   //the policy define with data is like a template for easy use we pass it here to create the policy
   assume_role_policy = data.aws_iam_policy_document.aws_load_balancer_controller_assume_role_policy.json
-  name               = "aws-load-balancer-controller"
+  name               = "${var.project_name}-alb-controller-rol-${var.environment}"
 }
 
 //another policy is needed but i use a file instead of doing everything here to make it redable
 
 resource "aws_iam_policy" "aws_load_balancer_controller" {
   policy = file("./alb_pol/AWSLoadBalancerController.json")
-  name   = "AWSLoadBalancerController"
+  name   = "${var.project_name}-alb-controller-pol-${var.environment}"
 }
 
 // attaching the policy to the rol created bf
@@ -44,6 +44,25 @@ resource "aws_iam_role_policy_attachment" "aws_load_balancer_controller_attach" 
   role       = aws_iam_role.aws_load_balancer_controller.name
   policy_arn = aws_iam_policy.aws_load_balancer_controller.arn
 }
+
+// new policy required
+
+resource "aws_iam_role_policy" "aws_load_balancer_controller_inline_policy" {
+  name   = "${var.project_name}-inline-pol-tags-${var.environment}"
+  role   = aws_iam_role.aws_load_balancer_controller.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = "elasticloadbalancing:AddTags",
+        Resource = "*"
+      }
+    ]
+  })
+}
+
 
 // outputing the rol arn (you can get by just knowing the acc number and the name of the role)
 
@@ -56,7 +75,7 @@ output "aws_load_balancer_controller_role_arn" {
 /* now lets deploy it to the eks cluster. i decided to do this with terraform since this goes on kube-system 
 namespace unlike the external dns which is created for each namespace*/
 
-provider "helm" {
+provider "helm" { 
   kubernetes {
     host                   = aws_eks_cluster.demo.endpoint
     cluster_ca_certificate = base64decode(aws_eks_cluster.demo.certificate_authority[0].data)
@@ -68,12 +87,14 @@ provider "helm" {
   }
 }
 
+// no need to modify this thx to state this is created on the proper env
+
 resource "helm_release" "aws-load-balancer-controller" {
   name = "aws-load-balancer-controller"
 
   repository = "https://aws.github.io/eks-charts"
   chart      = "aws-load-balancer-controller"
-  namespace  = "kube-system"
+  namespace  = "default"
   version    = "1.4.1"
 
   set {

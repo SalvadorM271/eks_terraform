@@ -6,7 +6,7 @@ metadata:
   # Otherwise, you may safely omit it.
   annotations:
     # Substitute your account ID and IAM service role name below. you decide a given nane bf creating infra
-    eks.amazonaws.com/role-arn: arn:aws:iam::153042419275:role/external-dns
+    eks.amazonaws.com/role-arn: arn:aws:iam::153042419275:role/external-dns-stg # change env to deploy
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

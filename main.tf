@@ -5,14 +5,28 @@ provider "aws" {
 }
 
 terraform {
+
+  required_version = ">= 1.3.5"
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.0"
+      version = "4.44.0"
     }
     
   }
+
+  cloud {
+    hostname     = "app.terraform.io"
+    organization = "personal_demos"
+
+    workspaces {
+      name = "eks-dev"
+    }
+  }
+
 }
+
 
 # -----------------------------------vpc---------------------------------------
 
@@ -132,56 +146,33 @@ resource "aws_nat_gateway" "nat2" {
 
 # --------------------------------route tables----------------------------------
 
+
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
 
-  route = [
-    {
-      cidr_block                 = "0.0.0.0/0"
-      nat_gateway_id             = aws_nat_gateway.nat.id
-      carrier_gateway_id         = ""
-      destination_prefix_list_id = ""
-      egress_only_gateway_id     = ""
-      gateway_id                 = ""
-      instance_id                = ""
-      ipv6_cidr_block            = ""
-      local_gateway_id           = ""
-      network_interface_id       = ""
-      transit_gateway_id         = ""
-      vpc_endpoint_id            = ""
-      vpc_peering_connection_id  = ""
-    },
-  ]
-
   tags = {
-    Name = "private"
+    Environment = var.environment
   }
+}
+
+resource "aws_route" "route" {
+  route_table_id         = aws_route_table.private.id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat.id
 }
 
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
-  route = [
-    {
-      cidr_block                 = "0.0.0.0/0"
-      gateway_id                 = aws_internet_gateway.igw.id
-      nat_gateway_id             = ""
-      carrier_gateway_id         = ""
-      destination_prefix_list_id = ""
-      egress_only_gateway_id     = ""
-      instance_id                = ""
-      ipv6_cidr_block            = ""
-      local_gateway_id           = ""
-      network_interface_id       = ""
-      transit_gateway_id         = ""
-      vpc_endpoint_id            = ""
-      vpc_peering_connection_id  = ""
-    },
-  ]
-
   tags = {
-    Name = "public"
+    Environment = var.environment
   }
+}
+
+resource "aws_route" "route2" {
+  route_table_id         = aws_route_table.public.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.igw.id
 }
 
 resource "aws_route_table_association" "private-us-east-1a" {
@@ -381,6 +372,20 @@ resource "aws_iam_role_policy_attachment" "eks_cluster_autoscaler_attach" {
 output "eks_cluster_autoscaler_arn" {
   value = aws_iam_role.eks_cluster_autoscaler.arn
 }
+
+
+
+
+
+// done editing
+// main ()
+// argo cd
+// codepipeline (now only creates pipelines (all of them) when creating dev env)
+// external_dns
+// kubernetes.tf
+// load_balancer_controller.tf
+// rds.tf ()
+// secrets_store_csi_driver.tf
 
 
 
